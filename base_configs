@@ -1,0 +1,150 @@
+All routers
+
+config t
+ip domain name shahzadqadir.com
+crypto key generate
+2048
+username script priv 15 pass cisco123
+line vty 0 4
+ login local
+ transport input ssh
+
+ --------
+
+P1
+
+int f0/0
+ ip add 10.10.12.2 255.255.255.0
+ no shutdown
+int f1/0
+ ip add 10.10.13.1 255.255.255.0
+ no shutdown
+int f1/1
+ ip add 10.10.14.1 255.255.255.0
+ no shutdown
+int lo0
+ ip add 200.0.0.1 255.255.255.255
+
+
+P2
+
+int f0/0
+ ip add 10.10.12.2 255.255.255.0
+ no shutdown
+int f1/0
+ ip add 10.10.24.2 255.255.255.0
+ no shutdown
+int f1/1
+ ip add 10.10.16.2 255.255.255.0
+ no shutdown
+int lo0
+ ip add 200.0.0.2 255.255.255.255
+
+P3
+
+int f0/0
+ ip add 10.10.3.43 255.255.255.0
+ no shutdown
+int f1/0
+ ip add 10.10.13.3 255.255.255.0
+ no shutdown
+int f1/1
+ ip add 10.10.36.3 255.255.255.0
+ no shutdown
+int lo0
+ ip add 200.0.0.3 255.255.255.255
+
+P4
+
+int f0/0
+ ip add 10.10.34.4 255.255.255.0
+ no shutdown
+int f1/0
+ ip add 10.10.24.4 255.255.255.0
+ no shutdown
+int f1/1
+ ip add 10.10.14.4 255.255.255.0
+ no shutdown
+int f2/0
+ ip add 10.10.46.4 255.255.255.0
+ no shutdown
+int lo0
+ ip add 200.0.0.4 255.255.255.255
+
+PE1
+
+int f1/1
+ ip add 10.10.25.5 255.255.255.0
+ no shutdown
+int f2/0
+ ip add 10.10.15.5 255.255.255.0
+ no shutdown
+int lo0
+ ip add 200.0.0.5 255.255.255.255
+
+PE2
+
+int f1/1
+ ip add 10.10.36.6 255.255.255.0
+ no shutdown
+int f2/0
+ ip add 10.10.46.6 255.255.255.0
+ no shutdown
+int lo0
+ ip add 200.0.0.6 255.255.255.255
+
+----------
+
+router ospf 1
+ passive default
+ network 0.0.0.0 255.255.255.255 area 0
+ no pass f0/0
+ no pass f1/0
+ no pass f2/0
+ no pass f1/1
+
+int f0/0 
+ ip ospf network point-to-point
+int f1/0
+ ip ospf network point-to-point
+int f2/0
+ ip ospf network point-to-point
+int f1/1
+ ip ospf network point-to-point
+
+-------
+
+BGP configs
+
+PE1, PE2
+
+router bgp 65001
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ neighbor 200.0.0.1 remote-as 65001
+ neighbor 200.0.0.1 update-source Loopback0
+ neighbor 200.0.0.2 remote-as 65001
+ neighbor 200.0.0.2 update-source Loopback0
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family vpnv4
+  neighbor 200.0.0.1 activate
+  neighbor 200.0.0.1 send-community both
+  neighbor 200.0.0.2 activate
+  neighbor 200.0.0.2 send-community both
+
+P1, P2
+
+router bgp 65001
+ no bgp default ipv4-unicast
+ neighbor 200.0.0.5 remote 65001
+ neighbor 200.0.0.5 update-source lo0
+ neighbor 200.0.0.6 remote 65001
+ neighbor 200.0.0.6 update-source lo0
+address-family vpnv4
+ neighbor 200.0.0.5 activate
+ neighbor 200.0.0.6 activate
+ neighbor 200.0.0.5 route-reflector-client
+ neighbor 200.0.0.6 route-reflector-client
