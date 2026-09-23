@@ -1,0 +1,14 @@
+configure terminal
+{%- for vrf in data %}
+vrf definition {{ vrf.vrf_name }}
+rd {{ vrf.rd }}
+address-family ipv4
+{%- for rt in vrf.rts_import %}
+  route-target import {{ rt }}
+{% endfor -%}
+{%- for rt in vrf.rts_export %}
+  route-target export {{ rt }}
+{% endfor -%}
+{% endfor -%}
+end
+write memory

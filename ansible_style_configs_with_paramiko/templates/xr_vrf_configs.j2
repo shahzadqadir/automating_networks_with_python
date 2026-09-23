@@ -1,0 +1,22 @@
+configure terminal
+router bgp 65001
+{%- for vrf in data %}
+vrf {{ vrf.vrf_name }}
+rd {{ vrf.rd }}
+address-family ipv4 unicast
+{% endfor -%}
+exit
+exit
+exit
+
+{%- for vrf in data %}
+vrf {{ vrf.vrf_name }}
+address-family ipv4 unicast
+{%- for rt in vrf.rts_import %}
+  import route-target {{ rt }}
+{% endfor -%}
+{%- for rt in vrf.rts_export %}
+  export route-target {{ rt }}
+{% endfor -%}
+{% endfor -%}
+commit

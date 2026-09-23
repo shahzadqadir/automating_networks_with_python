@@ -1,0 +1,6 @@
+- vrf_name: 'cust_b'
+  rd: '200.0.0.5:102'
+  rts_import:
+    - 100:102
+  rts_export:
+    - 100:102
